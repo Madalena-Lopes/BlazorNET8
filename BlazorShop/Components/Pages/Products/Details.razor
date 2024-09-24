@@ -1,0 +1,56 @@
+﻿@page "/products/{id:int}"
+@inject ApplicationDbContext Context
+@rendermode InteractiveServer
+
+<h1>@Model.Title</h1>
+
+<EditForm Model="@Model">
+
+    <div class="mb-3">
+        <label class="form-label">Nome do produto</label>
+        <InputText @bind-Value="Model.Title" class="form-control" readonly />
+        <ValidationMessage For="@(() => Model.Title)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Preço</label>
+        <InputNumber @bind-Value="Model.Price" class="form-control" readonly />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Categoria</label>
+        <InputNumber @bind-Value="Model.CategoryId" class="form-control" readonly />
+         @foreach (var category in Categories)
+        {
+            @if (Model.CategoryId == @category.Id)
+            {
+                <InputText @bind-Value="@category.Title" class="form-control" readonly></InputText>
+            }
+        } 
+    </div>
+
+    <a href="/products">Voltar</a>
+
+</EditForm>
+
+
+@code {
+    [Parameter] @*faz-me o vínculo com o parâmetro no url*@
+    public int Id { get; set; }
+    public Product Model { get; set; } = new();
+    public IEnumerable<Category> Categories { get; set; } = Enumerable.Empty<Category>();//forma + simples de inicializar. Não tem alocação de memoria, neste caso.Tipo de lista + primitivo/simples.
+
+    //vai ser executado sempre q a página ou o componente for renderizado
+    protected override async Task OnInitializedAsync()
+    {
+        Model = await Context
+            .Products
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == Id) ?? new();
+        Categories = await Context
+            .Categories
+            .AsNoTracking()
+            .OrderBy(x => x.Title)
+            .ToListAsync();
+    }
+}

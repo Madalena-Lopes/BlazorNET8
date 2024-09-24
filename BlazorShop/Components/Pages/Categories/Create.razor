@@ -1,0 +1,42 @@
+﻿@page "/categories/create"
+@inject ApplicationDbContext Context
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+<h1>Nova categoria</h1>
+
+<EditForm Model="@Model" OnValidSubmit="OnValidSubmitAsync">
+    <DataAnnotationsValidator /> @*Valida, mas não exibe nada*@
+    <ValidationSummary /> @*Exibe as mensagens todas no inicio da página*@
+
+    <div class="mb-3">
+        <label class="form-label">Nome da categoria</label>
+        <InputText @bind-Value="Model.Title" class="form-control"/>
+        <ValidationMessage For="@(() => Model.Title)" /> @* Exibe 1 só mensagem e abaixo do InputText*@
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Criar
+    </button>
+    <a href="/categories">Cancelar</a>
+
+</EditForm>
+
+@* tudo o q está em code roda no servidor. Podemos usar EF de forma tranquila. *@
+@code {
+    public Category Model { get; set; } = new();
+
+    //vai ser executado sempre q a pagina ou o componente for renderizado
+    protected override void OnInitialized()
+    {
+        //Model.Title = "Minha categoria";
+    }
+
+    public async Task OnValidSubmitAsync()
+    {
+        await Context.Categories.AddAsync(Model);
+        await Context.SaveChangesAsync();
+        Navigation.NavigateTo("categories");
+    }
+}

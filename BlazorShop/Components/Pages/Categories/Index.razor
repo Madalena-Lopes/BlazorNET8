@@ -1,0 +1,71 @@
+﻿@page "/categories"
+@inject ApplicationDbContext Context
+@attribute [StreamRendering(true)] 
+@* StreamRendering(true) 1º carrega o q puder da página e depois é q carrega o resto*@
+
+<h1>Categorias</h1>
+<a href="/categories/create" class="btn btn-primary">Nova Categoria</a>
+<br>
+
+@if (Categories.Count() >= 0)  @*Categories.Count()<=0, mas visual sugeriu !Categories.Any()*@
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nome</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in Categories)
+            {
+                <tr>
+                    <td>@category.Id</td>
+                    <td>
+                        <a href="/categories/@category.Id">
+                            @category.Title
+                        </a>
+                    </td>
+                    <td>
+                        <a href="/categories/edit/@category.Id" class="btn btn-primary">
+                            Editar
+                        </a>
+                        &nbsp;&nbsp; @* espaços em branco*@
+                        <AuthorizeView>
+                            @if (context.User.IsInRole("admin")) @*só funciona dentro do AuthorizeView*@
+                            {
+                                <a href="/categories/delete/@category.Id" class="btn btn-danger">
+                                    Excluir
+                                </a>
+                            }
+                        </AuthorizeView>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-center">
+        <em>
+            A carregar as categorias...
+        </em>
+    </p>
+}
+
+@code {
+    public IEnumerable<Category> Categories { get; set; } = Enumerable.Empty<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        //await Task.Delay(5000);
+
+        Categories = await Context
+            .Categories
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+}
